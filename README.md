@@ -12,8 +12,9 @@ Configuration-based TCP gateway
 * Automatic TLS via Lets Encrypt
 * Management UI
 * Management API
+* Zero-downtime reconfigures
 
-### Configuration `` specification
+### Configuration specification
 
 * Data types are defined with angle brackets `<` `foo` `>`
 * Optional config are surrounded with square brackets `[bar:]bazz`
@@ -24,11 +25,11 @@ Configuration-based TCP gateway
   ...
 }
 
-<endpoint> = "[<protocol>:]<abs path to unix socket>|[<ip>:]<port>"
+<endpoint> = "[<protocol>:]<abs path to unix socket>|[<host|ip>:]<port>"
 
 <protocol> = "tcp|tls|ws|wss" (default tcp)
 
-<endpoint-config> = "<proxy-config.endpoint>" | {
+<endpoint-config> = {
   type: <endpoint-type>
   <<endpoint-type>-config>
 }
@@ -39,7 +40,14 @@ Configuration-based TCP gateway
 <proxy-config> = {
   remote: <endpoint>
   certificates: <certificate-config>
-  timeout: <timeout-settings> (default no timeouts)
+  timeout: {
+    read: <milliseconds> (default 0)
+    write: <milliseconds> (default 0)
+  }
+  buffer: {
+    read: <bytes> (default 4096)
+    write: <bytes> (default 4096)
+  }
 }
 
 <certificate-config> = {
@@ -47,21 +55,21 @@ Configuration-based TCP gateway
   cert: <file-path>
 }
 
-<timeout-settings> = {
-  read: <duration>
-  write: <duration>
-}
-
 //server-name-indication multiplexer
 //missing certificates are fetched from letsencrypt
-//and stored locally
+//and inserted into the appropriate <proxy-config>
 <sni-config> = {
   lets-encrypt {
     agree: true|false, (default true)
     email: <email-address>
+    storage: "config|file"
   }
   proxies {
     <sni host>: <endpoint-config>
+    ...
+  }
+  certificates {
+    <sni host>: <certificate-config>
     ...
   }
 }
@@ -108,4 +116,8 @@ Configuration-based TCP gateway
   }
 }
 ```
+
+### Implementation
+
+A set of `net.Listener`s will accept a larger set of local `net.Conn`s which forward through to a set of remote `net.Conn`s.
 
