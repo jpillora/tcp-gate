@@ -88,7 +88,6 @@ Configuration-based TCP gateway
 
 ```json
 {
-  "7000": "foo.company.com:9001"
   "80": {
     "type": "proxy",
     "endpoint": "bar.company.com:9002",
@@ -97,10 +96,13 @@ Configuration-based TCP gateway
   "443": {
     "type": "sni",
     "proxies": {
-      "web.foobar.com": "bazz.company.com:9003"
+      "web.foobar.com": {
+        "type": "proxy",
+        "endpoint": "bazz.company.com:9003"
+      },
       "admin.foobar.com": {
         "type": "admin",
-        "password": "s3cret"
+        "auth": "user:s3cret"
       }
     }
   }
