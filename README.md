@@ -1,4 +1,4 @@
-:warning: Currently, this repository is only documentation
+:warning: This repository has been superceded by https://github.com/yyyar/gobetween
 
 ---
 
